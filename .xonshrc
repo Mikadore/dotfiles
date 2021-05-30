@@ -1,0 +1,69 @@
+import xonsh
+
+def get_branch():
+    return xonsh.prompt.vc.get_git_branch()
+
+def set_prompt():
+    # lambda = "λ"
+    # other  = "ⵃ"
+    $PROMPT="{WHITE}{cwd} {BOLD_RED}λ {WHITE}"
+    b = get_branch()
+    btxt = "{INTENSE_BLACK}\ue0a0 " + b if b else ''
+    $RIGHT_PROMPT="{INTENSE_GREEN}"+btxt+"{WHITE}[{BOLD_RED}{user}{WHITE}@{INTENSE_YELLOW}{hostname}{WHITE}]"
+
+
+def set_toolbar():
+	pass
+aliases['ls'] = 'exa'
+aliases['cat'] = 'bat'
+
+# $XONSH_COLOR_STYLE='monokai'
+
+# for `man` mainly
+$LESS_TERMCAP_mb = "\033[01;31m"     # begin blinking
+$LESS_TERMCAP_md = "\033[01;31m"     # begin bold
+$LESS_TERMCAP_me = "\033[0m"         # end mode
+$LESS_TERMCAP_so = "\033[01;44;36m"  # begin standout-mode (bottom of screen)
+$LESS_TERMCAP_se = "\033[0m"         # end standout-mode
+$LESS_TERMCAP_us = "\033[00;36m"     # begin underline
+$LESS_TERMCAP_ue = "\033[0m"         # end underline
+
+
+history_file = None
+
+@events.on_chdir
+def chdur(olddir, newdir):
+    set_prompt()
+    set_toolbar()
+
+@events.on_post_init
+def initialize():
+    user = $USER
+    home = $HOME
+    
+    print(f"Welcome back {user}!")
+    global history_file
+    history_file = open(f"{home}/.xonsh_history", "a+")
+    if history_file == None:
+        print(f"Couldn't open '{home}/.xonsh_history'!")
+    set_prompt()
+    set_toolbar()
+
+@events.on_precommand
+def log_command(cmd):
+    history_file.write(cmd)
+    history_file.flush()
+
+@events.on_postcommand
+def ostcommand(cmd: str, rtn: int, out: str or None, ts: list):
+    set_prompt()
+    set_toolbar()
+
+@events.on_exit
+def exit_handler():
+    history_file.close()
+
+def lrange(a, b=None):
+	return list(range(a)) if b == None else list(range(a,b))
+
+
